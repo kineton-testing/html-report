@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Grafico MultiFiltro</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 900px;
+      margin: 30px auto;
+    }
+    canvas {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>Filtra per Dispositivo, Gruppo e Stato</h2>
+
+  <label for="deviceSelect">Dispositivo:</label>
+  <select id="deviceSelect">
+    <option value="Hub6">Hub6 Versione 8.1p2s3</option>
+    <option value="SuperPod">SuperPod versione 4.4.3.3</option>
+  </select>
+
+  <label for="gruppoSelect">Gruppo:</label>
+  <select id="gruppoSelect">
+    <option value="P1">P1</option>
+    <option value="P2">P2</option>
+    <option value="P3">P3</option>
+  </select>
+
+  <label for="statoSelect">Stato:</label>
+  <select id="statoSelect">
+    <option value="Passed">Completed Tests</option>
+    <option value="Failed">Failed</option>
+    <option value="ToBeStart">To Be Start</option>
+  </select>
+
+  <canvas id="grafico"></canvas>
+
+  <script>
+    const ctx = document.getElementById('grafico').getContext('2d');
+
+    const categorie = ['Totale', 'IoT', 'Network Devices', 'VPN', 'STB-Sky + OTT Services', 'POS Payment', 'File Sharing', 'Media Entertainment', 'VoIP - Messaging', 'Gaming'];
+
+    const dati = {
+      Hub6: {
+        P1: {
+          Passed: [19, 88, 0, 89.5, 0, 90, 0, 0, 0, 0],
+          Failed: [5, 2, 0, 3, 0, 0, 0, 0, 0, 0],
+          ToBeStart: [2, 0, 0, 1, 0, 0, 0, 0, 0, 0]
+        },
+        P2: {
+          Passed: [10, 25, 0, 50, 0, 0, 0, 0, 0, 0],
+          Failed: [2, 1, 0, 1, 0, 0, 0, 0, 0, 0],
+          ToBeStart: [1, 0, 0, 2, 0, 0, 0, 0, 0, 0]
+        },
+        P3: {
+          Passed: [5, 15, 0, 40, 0, 0, 0, 0, 0, 0],
+          Failed: [1, 0, 0, 2, 0, 0, 0, 0, 0, 0],
+          ToBeStart: [0, 1, 0, 1, 0, 0, 0, 0, 0, 0]
+        }
+      },
+      SuperPod: {
+        P1: {
+          Passed: [20, 70, 0, 80, 0, 0, 0, 0, 0, 0],
+          Failed: [3, 5, 0, 4, 0, 0, 0, 0, 0, 0],
+          ToBeStart: [1, 2, 0, 2, 0, 0, 0, 0, 0, 0]
+        },
+        P2: {
+          Passed: [12, 30, 0, 60, 0, 0, 0, 0, 0, 0],
+          Failed: [2, 3, 0, 3, 0, 0, 0, 0, 0, 0],
+          ToBeStart: [0, 0, 0, 1, 0, 0, 0, 0, 0, 0]
+        },
+        P3: {
+          Passed: [8, 10, 0, 35, 0, 0, 0, 0, 0, 0],
+          Failed: [1, 1, 0, 2, 0, 0, 0, 0, 0, 0],
+          ToBeStart: [1, 1, 0, 2, 0, 0, 0, 0, 0, 0]
+        }
+      }
+    };
+
+    const colori = {
+      Passed: '#4CAF50',
+      Failed: '#F44336',
+      ToBeStart: '#FFC107'
+    };
+
+    const statoDisplayName = {
+      Passed: 'Completed Tests',
+      Failed: 'Failed',
+      ToBeStart: 'To Be Start'
+    };
+
+    let chart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: categorie,
+        datasets: []
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          datalabels: {
+            anchor: 'end',
+            align: 'top',
+            color: '#000',
+            font: {
+              weight: 'bold',
+              size: 12
+            },
+            formatter: function(value) {
+              return value + '%';
+            }
+          },
+          legend: {
+            position: 'top'
+          },
+          tooltip: {
+            enabled: true
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 100,
+            ticks: {
+              stepSize: 10
+            }
+          }
+        }
+      },
+      plugins: [ChartDataLabels]
+    });
+
+    function aggiornaGrafico() {
+      const dispositivo = document.getElementById('deviceSelect').value;
+      const gruppo = document.getElementById('gruppoSelect').value;
+      const stato = document.getElementById('statoSelect').value;
+
+      const valori = dati[dispositivo][gruppo][stato];
+
+      chart.data.datasets = [{
+        label: `${dispositivo} - ${gruppo} (${statoDisplayName[stato]})`,
+        data: valori,
+        backgroundColor: colori[stato]
+      }];
+      chart.update();
+    }
+
+    document.getElementById('deviceSelect').addEventListener('change', aggiornaGrafico);
+    document.getElementById('gruppoSelect').addEventListener('change', aggiornaGrafico);
+    document.getElementById('statoSelect').addEventListener('change', aggiornaGrafico);
+
+    aggiornaGrafico(); // Load default
+  </script>
+
+</body>
+</html>
